@@ -60,3 +60,33 @@ const mainMenu = () => {
         }
     })
 }
+
+function viewDepartments(){
+    console.log('view departments')
+    mainMenu()
+}
+
+function viewRoles(){
+    console.log('view roles')
+    mainMenu()
+}
+
+function viewEmployees(){
+    console.log('view emplyeee')
+    mainMenu()
+}
+
+function addDepartment(){
+    console.log('add departments')
+    mainMenu()
+}
+
+function addRole(){
+    console.log('add role')
+    mainMenu()
+}
+
+function addEmployee(){
+    console.log('add employee')
+    mainMenu()
+}
