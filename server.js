@@ -9,7 +9,7 @@ const connection = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: 'company_db',
     },
-    console.log('connected to db')
+    console.log(' === connected to db === ')
 )
 
 connection.connect(()=>{
@@ -63,27 +63,100 @@ const mainMenu = () => {
 
 function viewDepartments(){
     console.log('view departments')
-    mainMenu()
+    connection.query('SELECT * FROM department;', function (error, results){
+        try {
+            console.table(results)
+            mainMenu()
+        } catch (error) {
+            console.log(error)
+        }
+    }) 
+
 }
 
 function viewRoles(){
     console.log('view roles')
-    mainMenu()
+    connection.query('SELECT * FROM roles;', function (error, results){
+        try {
+            console.table(results)
+            mainMenu()
+        } catch (error) {
+            console.log(error)
+        }
+    })
 }
 
 function viewEmployees(){
     console.log('view emplyeee')
-    mainMenu()
+    connection.query('SELECT * FROM employee;', function (error, results){
+        try {
+            console.table(results)
+            mainMenu()
+        } catch (error) {
+            console.log(error)
+        }
+    })
 }
 
 function addDepartment(){
-    console.log('add departments')
-    mainMenu()
+    console.log('add department')
+
+    var departmentPrompt = [
+        {
+            type: 'input',
+            name: 'departmentName',
+            message: 'what is the new department name?'
+        }
+    ]
+
+    inquirer.prompt( departmentPrompt ) 
+        .then((response) => {
+            
+            connection.query("INSERT INTO department (department_name) VALUES (?)", [response.departmentName], function (err, result){
+                try {
+                    console.log(` ${response.departmentName} added to departments`)
+                    mainMenu();
+                } catch (error) {
+                    console.log(err);
+                }
+            })
+    })
+
 }
 
 function addRole(){
     console.log('add role')
-    mainMenu()
+    var rolePrompt = [
+        {
+            type: 'input',
+            name: 'title',
+            message: 'what is the new role name?'
+        },
+        {
+            type: 'input',
+            name: 'salary',
+            message: 'what is the new role salary?'
+        },
+        {
+            type: 'list',
+            name: 'department',
+            message: 'what is the new role\'s department?',
+            choices: '',
+        },
+    ]
+
+    inquirer.prompt( rolePrompt ) 
+        .then((response) => {
+            
+            connection.query("INSERT INTO department (department_name) VALUES (?)", [response.departmentName], function (err, result){
+                try {
+                    console.log(` ${response.departmentName} added to departments`)
+                    mainMenu();
+                } catch (error) {
+                    console.log(err);
+                }
+            })
+    })
 }
 
 function addEmployee(){
