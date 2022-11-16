@@ -33,8 +33,8 @@ const mainMenu = () => {
         }
     ])
 
-    .then((answer) => {
-        switch (answer.mainMenu) {
+    .then((response) => {
+        switch (response.mainMenu) {
             case  'View all Departments':
                 viewDepartments();
                 break;
@@ -55,78 +55,84 @@ const mainMenu = () => {
                 break;
         
             default:
-                 console.log("how'd you get here?")
+                 console.log("inquirer error")
                 break;
         }
     })
 }
 
 function viewDepartments(){
-    console.log('view departments')
+    // console.log('view departments')
     connection.query('SELECT * FROM department;', function (error, results){
         try {
             console.table(results)
             mainMenu()
         } catch (error) {
-            console.log(error)
+            console.log("viewDepartments() error:", error)
         }
     }) 
 
 }
 
 function viewRoles(){
-    console.log('view roles')
+    // console.log('view roles')
     connection.query('SELECT * FROM roles;', function (error, results){
         try {
             console.table(results)
             mainMenu()
         } catch (error) {
-            console.log(error)
+            console.log("viewRoles() error:", error)
         }
     })
 }
 
 function viewEmployees(){
-    console.log('view emplyeee')
+    // console.log('view emplyeee')
     connection.query('SELECT * FROM employee;', function (error, results){
         try {
             console.table(results)
             mainMenu()
         } catch (error) {
-            console.log(error)
+            console.log("viewEmployees() error:", error)
         }
     })
 }
 
 function addDepartment(){
-    console.log('add department')
+    // console.log('add department')
 
-    var departmentPrompt = [
+    inquirer.prompt([
         {
             type: 'input',
             name: 'departmentName',
             message: 'what is the new department name?'
         }
-    ]
-
-    inquirer.prompt( departmentPrompt ) 
-        .then((response) => {
-            
-            connection.query("INSERT INTO department (department_name) VALUES (?)", [response.departmentName], function (err, result){
-                try {
-                    console.log(` ${response.departmentName} added to departments`)
-                    mainMenu();
-                } catch (error) {
-                    console.log(err);
-                }
-            })
+    ]) 
+    .then((response) => {
+        
+        connection.query("INSERT INTO department (department_name) VALUES (?)", [response.departmentName], function (err, result){
+            try {
+                console.log(` ${response.departmentName} added to departments`)
+                mainMenu();
+            } catch (error) {
+                console.log("addDepartment() error:", error);
+            }
+        })
     })
 
 }
 
-function addRole(){
-    console.log('add role')
-    var rolePrompt = [
+async function addRole(){
+    // console.log('add role');
+
+    // gether departments to select from
+    const departments = await connection.promise().query("SELECT * FROM department;")
+    // console.log("raw departtments", departments)
+    // console.log("raw departtments arr", departments[0])
+    const allDepartments = departments[0].map(department => ({name:department.department_name, value: department.id }))
+    // console.log("mapped departmetns", allDepartments) //undefined
+
+    inquirer.prompt([
         {
             type: 'input',
             name: 'title',
@@ -141,19 +147,25 @@ function addRole(){
             type: 'list',
             name: 'department',
             message: 'what is the new role\'s department?',
-            choices: '',
+            choices: allDepartments,
         },
-    ]
+    ]) 
+    .then((response) => {
+        
+        // ( "query" , value , function to run after query )
+        connection.query(
+            "INSERT INTO roles SET ?",
 
-    inquirer.prompt( rolePrompt ) 
-        .then((response) => {
-            
-            connection.query("INSERT INTO department (department_name) VALUES (?)", [response.departmentName], function (err, result){
+            {role_title: response.title,
+            role_salary: response.salary,
+            department_id: response.department }, 
+        
+            function (err, result){
                 try {
-                    console.log(` ${response.departmentName} added to departments`)
+                    console.log(`${response.title} added to roles`)
                     mainMenu();
-                } catch (error) {
-                    console.log(err);
+                } catch (err) {
+                    console.log("addRole() error:", err);
                 }
             })
     })
