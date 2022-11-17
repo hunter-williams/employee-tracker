@@ -21,7 +21,7 @@ const mainMenu = () => {
         {
             type:'list',
             name: 'mainMenu',
-            message: 'Select action',
+            message: 'Select action, CTRL+C to exit',
             choices: [
                 'View all Departments',
                 'View all Roles',
@@ -63,38 +63,35 @@ const mainMenu = () => {
 
 function viewDepartments(){
     // console.log('view departments')
-    connection.query('SELECT * FROM department;', function (error, results){
-        try {
-            console.table(results)
-            mainMenu()
-        } catch (error) {
-            console.log("viewDepartments() error:", error)
+    connection.query('SELECT * FROM department;', function (err, results){
+        if (err) {
+            console.log("viewDepartments() error:", err)
         }
+        console.table(results)
+        mainMenu()
     }) 
 
 }
 
 function viewRoles(){
     // console.log('view roles')
-    connection.query('SELECT * FROM roles;', function (error, results){
-        try {
-            console.table(results)
-            mainMenu()
-        } catch (error) {
-            console.log("viewRoles() error:", error)
+    connection.query('SELECT * FROM roles;', function (err, results){
+        if (err) {
+            console.log("viewRoles() error:", err)
         }
+        console.table(results)
+        mainMenu()
     })
 }
 
 function viewEmployees(){
     // console.log('view emplyeee')
-    connection.query('SELECT * FROM employee;', function (error, results){
-        try {
-            console.table(results)
-            mainMenu()
-        } catch (error) {
-            console.log("viewEmployees() error:", error)
+    connection.query('SELECT * FROM employee;', function (err, results){
+        if (err) {
+            console.log("viewEmployees() error:", err)
         }
+        console.table(results)
+        mainMenu()
     })
 }
 
@@ -111,12 +108,11 @@ function addDepartment(){
     .then((response) => {
         
         connection.query("INSERT INTO department (department_name) VALUES (?)", [response.departmentName], function (err, result){
-            try {
-                console.log(` ${response.departmentName} added to departments`)
-                mainMenu();
-            } catch (error) {
-                console.log("addDepartment() error:", error);
+            if (err) {
+                console.log("addDepartment() error:", err);
             }
+            console.log(` ${response.departmentName} added to departments`)
+            mainMenu();
         })
     })
 
@@ -161,17 +157,69 @@ async function addRole(){
             department_id: response.department }, 
         
             function (err, result){
-                try {
-                    console.log(`${response.title} added to roles`)
-                    mainMenu();
-                } catch (err) {
+                if (err) {
                     console.log("addRole() error:", err);
                 }
+                console.log(`${response.title} added to roles`)
+                mainMenu();
             })
     })
 }
 
-function addEmployee(){
+async function addEmployee(){
     console.log('add employee')
-    mainMenu()
+
+    const roles = await connection.promise().query("SELECT * FROM roles;")
+    const allRoles = roles[0].map(role => ({ name: role.role_title, value: role.id }))
+
+    const managers = await connection.promise().query("SELECT * FROM employee;")
+    const allManagers = managers[0].map(manager => ({ name: manager.first_name + ' ' + manager.last_name, value: manager.id }))
+    
+    console.log(allRoles, allManagers)
+
+
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'firstName',
+            message: 'what is the Employee\'s first name?'
+        },
+        {
+            type: 'input',
+            name: 'lastName',
+            message: 'what is the Employee\'s last name?'
+        },
+        {
+            type: 'list',
+            name: 'employeeRole',
+            message: 'what is the new Employees\'s Role?',
+            choices: allRoles,
+        },
+        {
+            type: 'list',
+            name: 'employeeManager',
+            message: 'what is the new Employees\'s Manager?',
+            choices: allManagers,
+        },
+    ]) 
+    .then((response) => {
+        
+        connection.query(
+            "INSERT INTO employee SET ?",
+
+            {first_name: response.firstName,
+            last_name: response.lastName,
+            role_id: response.employeeRole,
+            manager_id: response.employeeManager }, 
+        
+            function (err, result){
+                if (err) {
+                    console.log("addEmployee() error:", err)
+                }
+                console.log(`${response.firstName} added to employee`)
+                mainMenu();
+
+                
+            })
+    })
 }
